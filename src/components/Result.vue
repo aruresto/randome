@@ -1,6 +1,20 @@
 <template>
   <el-container style="height: 100%;">
     <el-main style="height: 100%;">
+       <el-row style="height:20%;">
+        <el-col  v-show="isStart">
+          <span class="reward">{{ rewardText }}</span>
+        </el-col>
+        <el-col>
+          <el-button
+            v-show="isStart"
+            type="danger"
+            :disabled="disabledRandom"
+            @click="randomHandler"
+            autofocus
+          >สุ่ม !</el-button>
+        </el-col>
+      </el-row>
       <el-row style="height: 20%;">
         <el-col>
           <h1>{{currentRewardText}}</h1>
@@ -9,19 +23,6 @@
       <el-row style="height:50%;" type="flex" justify="center" align="center">
         <el-col>
           <span class="result">{{ item }}</span>
-        </el-col>
-      </el-row>
-      <el-row style="height:20%;">
-        <el-col>
-          <span class="reward">{{ rewardText }}</span>
-        </el-col>
-        <el-col>
-          <el-button
-            type="danger"
-            :disabled="disabledRandom"
-            @click="randomHandler"
-            autofocus
-          >สุ่ม !</el-button>
         </el-col>
       </el-row>
     </el-main>
@@ -53,6 +54,10 @@ export default {
     currentReward: {
       type: Object,
       default: null
+    },
+    isStart: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {

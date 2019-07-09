@@ -1,9 +1,10 @@
 <template>
   <el-container>
     <el-main>
-      <el-row type="flex">
-        <el-col :md="12" class="result-col">
+      <el-row>
+        <el-col :md="12" :sm="24">
           <result
+            :is-start="isStart"
             :disabled-random="!canRandom"
             :item="resultShowing"
             :latest-reward="latestReward"
@@ -11,12 +12,22 @@
             :current-reward="currentReward"
           />
         </el-col>
-        <el-col :md="12">
-          <el-row>
-            <el-col :span="12">
+        <el-col :md="12" :sm="24">
+          <el-row v-show="isStart">
+            <el-col>
+              <el-button type="warning" @click="resetHandler" >รีเซ็ต</el-button>
+            </el-col>
+          </el-row>
+          <el-row v-show="!isStart">
+            <el-col :span="8">
+              <el-button type="danger"  :disabled="!canRandom" @click="startRandom">
+                เริ่ม !
+              </el-button>
+            </el-col>
+            <el-col :span="8">
               <el-button type="warning" @click="rewardAddHandler">เพิ่มรางวัล</el-button>
             </el-col>
-            <el-col :span="12">
+            <el-col :span="8">
               <el-button type="primary" @click="inputFileHandler">{{ inputBtnText }}</el-button>
               <input type="file" id="file" hidden @change="readFileHandler" />
             </el-col>
@@ -24,26 +35,15 @@
           <el-row>
             <el-col class="text-left">
               <label>รางวัล</label>
-              <reward-table :inputs="rewards" />
+              <reward-table :inputs="rawRewards" />
             </el-col>
           </el-row>
           <el-row>
             <el-col class="text-left">
               <label>ข้อมูลสุ่ม</label>
-              <input-table :columns="colInputs" :inputs="inputs" />
+              <input-table :columns="colInputs" :inputs="rawInputs" />
             </el-col>
           </el-row>
-          <!-- <el-row>
-            <el-col>
-              <el-button
-                type="danger"
-                :disabled="isRandoming || rewards.length === 0"
-                @click="randomItemsHandler"
-                autofocus
-                v-show="!noInput"
-              >สุ่ม !</el-button>
-            </el-col>
-          </el-row>-->
         </el-col>
       </el-row>
       <el-row>
@@ -76,14 +76,17 @@ export default {
   data() {
     return {
       inputs: [],
+      rawInputs: [],
       colInputs: [],
       cols: [],
       results: [],
       rewards: [],
+      rawRewards: [],
       specificCol: [],
       currentReward: null,
       resultShowing: "",
-      isRandoming: false
+      isRandoming: false,
+      isStart: false,
     };
   },
   computed: {
@@ -135,6 +138,8 @@ export default {
           ...data.filter((row, index) => index !== 0)
         ];
 
+        this.rawInputs = this.inputs
+
         if (this.colInputs.length > 0) {
           let columnRow = data.find((row, index) => index === 0);
 
@@ -143,6 +148,7 @@ export default {
             name: column
           }));
 
+          this.specificCol = process.env.VUE_APP_COLUMNS_SHOW.split(",") || [];
           if (this.specificCol.length >= 1) {
             this.colInputs = this.colInputs.filter(column =>
               this.specificCol.includes(column.name)
@@ -158,6 +164,7 @@ export default {
 
         this.cols = this.colInputs;
 
+        this.specificCol = process.env.VUE_APP_COLUMNS_SHOW.split(",") || [];
         if (this.specificCol.length >= 1) {
           this.colInputs = this.colInputs.filter(column =>
             this.specificCol.includes(column.name)
@@ -215,9 +222,9 @@ export default {
           ];
 
         let newResult = [
-          ...this.inputs[randomIndex],
+          this.latestReward.rewardNumber,
           this.latestReward.reward,
-          this.latestReward.rewardNumber
+          ...this.inputs[randomIndex]
         ];
 
         this.results = [...this.results, newResult];
@@ -250,7 +257,25 @@ export default {
 
       if (reward) {
         this.rewards = [...this.rewards, reward];
+        this.rawRewards = this.rewards
       }
+    },
+    startRandom () {
+      this.isStart = true
+    },
+    resetHandler() {
+      this.inputs = []
+      this.rawInputs = []
+      this.colInputs = []
+      this.cols = []
+      this.results = []
+      this.rewards = []
+      this.rawRewards = []
+      this.specificCol = []
+      this.currentReward = null
+      this.resultShowing = ""
+      this.isRandoming = false
+      this.isStart = false
     }
   }
 };

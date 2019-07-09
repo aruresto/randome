@@ -1,42 +1,50 @@
 <template>
   <div id="app">
     <el-container>
-      <el-header>
-        <!-- Header Component -->
-      </el-header>
+      <!-- <el-header>
+        <Header/> 
+      </el-header> -->
       <el-main>
         <input-component />
       </el-main>
-      <el-footer>
-        <!-- Footer Component -->
-      </el-footer>
+      <!-- <el-footer>
+        <Footer />
+      </el-footer> -->
     </el-container>
   </div>
 </template>
 
 <script>
 import InputComponent from "./components/InputComponent";
+// import Header from './components/headers';
+// import Footer from './components/footer'
 
 export default {
   name: "app",
   components: {
-    InputComponent
+    InputComponent,
+    // Header,
+    // Footer
   }
 };
 </script>
 
 <style lang="scss" >
 #app {
-  font-family: "Itim", cursive;
+  font-family: 'Sarabun', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  /* margin-top: 60px; */
+}
+
+body {
+  margin: 0;
 }
 
 button {
-  font-family: "Itim", cursive;
+ font-family: 'Sarabun', sans-serif;
 }
 
 .el-row {
