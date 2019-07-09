@@ -1,5 +1,5 @@
 <template>
-  <el-table border height="250" :data="items" class="input-table">
+  <el-table border height="250" :data="items" class="input-table" >
     <el-table-column
       :key="`col-${index}`"
       v-for="(column, index) in columnsReward"
@@ -30,16 +30,20 @@ export default {
   computed: {
     columnsReward() {
       if (this.columns.length > 0) {
+        let newIndexColumn = JSON.parse(JSON.stringify(this.columns))
+        newIndexColumn.forEach(column => {
+          column.index = column.index + 2
+        })
         return [
-          ...this.columns,
-          {
-            index: this.rawColumns[this.rawColumns.length - 1].index + 1,
-            name: "รางวัล"
+           {
+            index: 0,
+            name: "รางวัลที่"
           },
           {
-            index: this.rawColumns[this.rawColumns.length - 1].index + 2,
-            name: "รางวัลที่"
-          }
+            index: 1,
+            name: "รางวัล"
+          },
+          ...newIndexColumn,
         ];
       } else {
         return [];
