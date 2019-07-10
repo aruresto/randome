@@ -15,14 +15,12 @@
         <el-col :md="12" :sm="24">
           <el-row v-show="isStart">
             <el-col>
-              <el-button type="warning" @click="resetHandler" >รีเซ็ต</el-button>
+              <el-button type="warning" @click="resetHandler">รีเซ็ต</el-button>
             </el-col>
           </el-row>
           <el-row v-show="!isStart">
             <el-col :span="8">
-              <el-button type="danger"  :disabled="!canRandom" @click="startRandom">
-                เริ่ม !
-              </el-button>
+              <el-button type="danger" :disabled="!canRandom" @click="startRandom">เริ่ม !</el-button>
             </el-col>
             <el-col :span="8">
               <el-button type="warning" @click="rewardAddHandler">เพิ่มรางวัล</el-button>
@@ -42,6 +40,7 @@
             <el-col class="text-left">
               <label>ข้อมูลสุ่ม</label>
               <input-table :columns="colInputs" :inputs="rawInputs" />
+              <span>จำนวน {{ rawInputs.length }}</span>
             </el-col>
           </el-row>
         </el-col>
@@ -84,9 +83,9 @@ export default {
       rawRewards: [],
       specificCol: [],
       currentReward: null,
-      resultShowing: "",
+      resultShowing: [],
       isRandoming: false,
-      isStart: false,
+      isStart: false
     };
   },
   computed: {
@@ -120,6 +119,7 @@ export default {
   methods: {
     readFileHandler(el) {
       let file = el.target.files[0];
+      this.specificCol = process.env.VUE_APP_COLUMNS_SHOW.split(",") || [];
 
       /* Boilerplate to set up FileReader */
       const reader = new FileReader();
@@ -127,48 +127,86 @@ export default {
         /* Parse data */
         const bstr = e.target.result;
         const wb = XLSX.read(bstr, { type: "binary" });
-        /* Get first worksheet */
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        /* Convert array of arrays */
-        const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-        /* Update state */
-        this.inputs = [
-          ...this.inputs,
-          ...data.filter((row, index) => index !== 0)
-        ];
+        for (var i in wb.SheetNames) {
+          /* Get first worksheet */
+          const wsname = wb.SheetNames[i];
+          const ws = wb.Sheets[wsname];
+          if (!ws["!ref"]) {
+            continue;
+          }
+          /* Convert array of arrays */
+          let data = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
-        this.rawInputs = this.inputs
+          let columnRow = data
+            .filter(row => row.length > 1)
+            .find((row, index) => index === 0);
+          let columnMap = [];
 
-        if (this.colInputs.length > 0) {
-          let columnRow = data.find((row, index) => index === 0);
-
-          this.colInputs = columnRow.map((column, index) => ({
+          let colInputs = columnRow.map((column, index) => ({
             index,
             name: column
           }));
 
-          this.specificCol = process.env.VUE_APP_COLUMNS_SHOW.split(",") || [];
           if (this.specificCol.length >= 1) {
-            this.colInputs = this.colInputs.filter(column =>
-              this.specificCol.includes(column.name)
-            );
+            for (var iscol of this.specificCol) {
+              var colSplit = iscol.split("|");
+              for (var isubscol in colSplit) {
+                let subCol = colSplit[isubscol];
+                subCol = subCol.replace("(", "");
+                subCol = subCol.replace(")", "");
+                let filterInput = colInputs.find(
+                  col => col.name.indexOf(subCol) > -1
+                );
+                if (filterInput) {
+                  let colFind = this.colInputs.find(
+                    selected => selected.rawName === iscol
+                  );
+
+                  if (colFind) {
+                    let columnMapData;
+                    if (columnMap[this.colInputs.indexOf(colFind)]) {
+                      columnMapData =
+                        columnMap[this.colInputs.indexOf(colFind)];
+                    }
+                    columnMap[this.colInputs.indexOf(colFind)] =
+                      filterInput.index;
+
+                    if (columnMapData) {
+                      columnMap.push(columnMapData);
+                    }
+                  } else {
+                    columnMap.push(filterInput.index);
+                  }
+
+                  if (!colFind) {
+                    this.colInputs.push({
+                      name: subCol,
+                      rawName: iscol
+                    });
+                  }
+
+                  break;
+                }
+              }
+            }
           }
-        }
-        let columnRow = data.find((row, index) => index === 0);
 
-        this.colInputs = columnRow.map((column, index) => ({
-          index,
-          name: column
-        }));
+          data = data
+            .filter(row => row.length > 1)
+            .filter((row, index) => index !== 0);
 
-        this.cols = this.colInputs;
+          data = data.map(row => {
+            let filterRow = [];
 
-        this.specificCol = process.env.VUE_APP_COLUMNS_SHOW.split(",") || [];
-        if (this.specificCol.length >= 1) {
-          this.colInputs = this.colInputs.filter(column =>
-            this.specificCol.includes(column.name)
-          );
+            for (var icolmap in columnMap) {
+              filterRow.push(row[columnMap[icolmap]]);
+            }
+            return filterRow;
+          });
+
+          this.inputs = [...this.inputs, ...data];
+
+          this.rawInputs = this.inputs;
         }
         document.getElementById("file").value = "";
       };
@@ -189,10 +227,7 @@ export default {
       if (this.inputs.length === 1) {
         this.results = [...this.results, this.inputs[0]];
         this.inputs = [];
-        this.resultShowing =
-          resultItem[
-            this.findColumnIndex(process.env.VUE_APP_COLUMS_RESULT_SHOW).index
-          ];
+        this.resultShowing = resultItem;
       } else {
         let randomTrigger = true;
         let randomShowingIndex = 0;
@@ -203,9 +238,7 @@ export default {
         }, 3000);
 
         while (randomTrigger) {
-          this.resultShowing = this.inputs[randomShowingIndex][
-            this.findColumnIndex(process.env.VUE_APP_COLUMS_RESULT_SHOW).index
-          ];
+          this.resultShowing = this.inputs[randomShowingIndex];
 
           if (randomShowingIndex === endIndex) {
             randomShowingIndex = 0;
@@ -216,10 +249,7 @@ export default {
           await this.sleep(50);
         }
 
-        this.resultShowing =
-          resultItem[
-            this.findColumnIndex(process.env.VUE_APP_COLUMS_RESULT_SHOW).index
-          ];
+        this.resultShowing = resultItem;
 
         let newResult = [
           this.latestReward.rewardNumber,
@@ -257,25 +287,25 @@ export default {
 
       if (reward) {
         this.rewards = [...this.rewards, reward];
-        this.rawRewards = this.rewards
+        this.rawRewards = this.rewards;
       }
     },
-    startRandom () {
-      this.isStart = true
+    startRandom() {
+      this.isStart = true;
     },
     resetHandler() {
-      this.inputs = []
-      this.rawInputs = []
-      this.colInputs = []
-      this.cols = []
-      this.results = []
-      this.rewards = []
-      this.rawRewards = []
-      this.specificCol = []
-      this.currentReward = null
-      this.resultShowing = ""
-      this.isRandoming = false
-      this.isStart = false
+      this.inputs = [];
+      this.rawInputs = [];
+      this.colInputs = [];
+      this.cols = [];
+      this.results = [];
+      this.rewards = [];
+      this.rawRewards = [];
+      this.specificCol = [];
+      this.currentReward = null;
+      this.resultShowing = "";
+      this.isRandoming = false;
+      this.isStart = false;
     }
   }
 };

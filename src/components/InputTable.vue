@@ -1,7 +1,7 @@
 <template>
   <el-table border height="250" :data="inputs" class="input-table">
     <el-table-column :key="`col-${index}`" v-for="(column, index) in columns" :label="column.name">
-      <template slot-scope="scope">{{ scope.row[column.index] }}</template>
+      <template slot-scope="scope">{{ scope.row[index] }}</template>
     </el-table-column>
   </el-table>
 </template>

@@ -1,8 +1,8 @@
 <template>
   <el-container style="height: 100%;">
     <el-main style="height: 100%;">
-       <el-row style="height:20%;">
-        <el-col  v-show="isStart">
+      <el-row style="height:20%;">
+        <el-col v-show="isStart">
           <span class="reward">{{ rewardText }}</span>
         </el-col>
         <el-col>
@@ -22,7 +22,11 @@
       </el-row>
       <el-row style="height:50%;" type="flex" justify="center" align="center">
         <el-col>
-          <span class="result">{{ item }}</span>
+          <el-row :key="index" v-for="(i, index) in item">
+            <el-col>
+              <span :class="{'result': index === 0}">{{ i }}</span>
+            </el-col>
+          </el-row>
         </el-col>
       </el-row>
     </el-main>
@@ -34,8 +38,8 @@ export default {
   name: "result",
   props: {
     item: {
-      type: String,
-      default: ""
+      type: Array,
+      default: () => []
     },
     disabledRandom: {
       type: Boolean,
@@ -86,5 +90,9 @@ export default {
 <style lang="scss" scoped>
 .result {
   font-size: 5rem;
+}
+
+span {
+  font-size: 2.5rem;
 }
 </style>
