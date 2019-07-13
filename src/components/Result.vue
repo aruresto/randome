@@ -3,7 +3,7 @@
     <el-main style="height: 100%;">
       <el-row style="height:20%;">
         <el-col v-show="isStart">
-          <span class="reward">{{ rewardText }}</span>
+          <h1 class="reward">{{ rewardText }}</h1>
         </el-col>
         <el-col>
           <el-button
@@ -17,7 +17,7 @@
       </el-row>
       <el-row style="height: 20%;">
         <el-col>
-          <h1>{{currentRewardText}}</h1>
+          <span>{{currentRewardText}}</span>
         </el-col>
       </el-row>
       <el-row style="height:50%;" type="flex" justify="center" align="center">

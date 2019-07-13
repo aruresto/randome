@@ -2,7 +2,7 @@
   <el-container>
     <el-main>
       <el-row>
-        <el-col :md="12" :sm="24">
+        <el-col :span="24">
           <result
             :is-start="isStart"
             :disabled-random="!canRandom"
@@ -12,7 +12,7 @@
             :current-reward="currentReward"
           />
         </el-col>
-        <el-col :md="12" :sm="24">
+        <el-col :span="24">
           <el-row v-show="isStart">
             <el-col>
               <el-button type="warning" @click="resetHandler">รีเซ็ต</el-button>
@@ -32,23 +32,25 @@
           </el-row>
           <el-row>
             <el-col class="text-left">
-              <label>รางวัล</label>
-              <reward-table :inputs="rawRewards" />
+                <label>ผลลัพธ์</label>
+          <result-table :raw-columns="cols" :columns="colInputs" :items="results" />
+            
             </el-col>
           </el-row>
           <el-row>
             <el-col class="text-left">
-              <label>ข้อมูลสุ่ม</label>
-              <input-table :columns="colInputs" :inputs="rawInputs" />
-              <span>จำนวน {{ rawInputs.length }}</span>
+                <label>รางวัล</label>
+              <reward-table :inputs="rawRewards" />
+             
             </el-col>
           </el-row>
         </el-col>
       </el-row>
       <el-row>
         <el-col class="text-left">
-          <label>ผลลัพธ์</label>
-          <result-table :raw-columns="cols" :columns="colInputs" :items="results" />
+         <label>ข้อมูลสุ่ม</label>
+              <input-table :columns="colInputs" :inputs="rawInputs" />
+              <span>จำนวน {{ rawInputs.length }}</span>
         </el-col>
       </el-row>
     </el-main>
